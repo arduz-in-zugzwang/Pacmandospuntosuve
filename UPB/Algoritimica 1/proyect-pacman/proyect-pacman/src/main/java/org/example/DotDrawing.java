@@ -1,20 +1,11 @@
 package org.example;
 
-import lombok.Getter;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.UUID;
 
-/**
- * ShapeDrawing
- *
- * @author Marcos Quispe
- * @since 1.0
- */
-@Getter
-public class WallDrawing extends JComponent {
+public class DotDrawing extends JComponent {
     private String id;
     public static final int WIDTH = 50; //crear constante
     private int x;
@@ -22,13 +13,13 @@ public class WallDrawing extends JComponent {
 
     private BufferedImage bi;
 
-    public WallDrawing(int x, int y) {
+    public DotDrawing(int x, int y) {
         id = UUID.randomUUID().toString();
         this.x = x;
         this.y = y;
         setBounds(x, y, WIDTH, WIDTH); // obligatorio
 
-        bi = BufferedImageUtil.readImage("pared.jpg", getClass());
+//        bi = BufferedImageUtil.readImage("wall.jpg", getClass());
     }
 
     @Override
@@ -38,6 +29,8 @@ public class WallDrawing extends JComponent {
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
 
-        g2d.drawImage(bi, 0, 0, WIDTH, WIDTH, this);
+//        g2d.drawImage(bi, 0, 0, WIDTH, WIDTH, this);
+        g2d.setColor(Color.darkGray);
+        g2d.fillOval(20, 20, 10, 10); // circulito en el centro
     }
 }

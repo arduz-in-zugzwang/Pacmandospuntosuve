@@ -15,19 +15,17 @@ import java.util.List;
  */
 public class Frame extends JFrame {
 
-    int[][] m= {{1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-            ,{1,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{1,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{1,0,0,0,0,0,0,0,0,0,0,0,0,1}
-//                ,{1,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{0,0,0,0,0,0,0,0,0,0,0,0,0,1}
-//                ,{0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-//                ,{0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-            ,{1,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{1,0,0,0,0,0,0,0,0,0,0,0,0,1}
-            ,{1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
+    int[][] m = {
+            {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+            {1,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+            {1,2,1,1,2,2,1,1,2,2,2,2,2,2,1},
+            {0,2,1,1,2,2,1,1,2,2,2,2,2,2,1},
+            {0,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+            {0,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+            {1,2,1,1,2,2,1,1,2,2,2,2,2,2,1},
+            {1,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+            {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+    };
 
     PacmanDrawing pacman;
     int dx = 2;
@@ -35,7 +33,7 @@ public class Frame extends JFrame {
 
     public Frame() throws HeadlessException {
         setTitle("Pacman");
-        setSize(900, 700);
+        setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //getContentPane().setLayout(null);
         setVisible(true);
@@ -89,15 +87,33 @@ public class Frame extends JFrame {
             int nextX = pacman.getX() + dx;
             int nextY = pacman.getY() + dy;
 
-            // borde derecho si va a la derecha, izquierdo si va a la izquierda
-            int bordeX = dx > 0 ? nextX + PacmanDrawing.WIDTH - 1 : nextX;
-            // borde inferior si va abajo, superior si va arriba
-            int bordeY = dy > 0 ? nextY + PacmanDrawing.WIDTH - 1 : nextY;
+            // Margen de tolerancia: "encoge" el bbox de Pacman para el chequeo
+            // Cuanto más grande, más permisivo al deslizarse por esquinas
+            int tolerance = 6;
 
-            int celdaX = bordeX / WallDrawing.WIDTH;
-            int celdaY = bordeY / WallDrawing.WIDTH;
+            int checkX1 = nextX + tolerance;
+            int checkY1 = nextY + tolerance;
+            int checkX2 = nextX + PacmanDrawing.WIDTH - 1 - tolerance;
+            int checkY2 = nextY + PacmanDrawing.WIDTH - 1 - tolerance;
 
-            if (m[celdaY][celdaX] != 1) {
+            // Celdas del mapa para las esquinas reducidas
+            int celdaX1 = checkX1 / WallDrawing.WIDTH;
+            int celdaX2 = checkX2 / WallDrawing.WIDTH;
+            int celdaY1 = checkY1 / WallDrawing.WIDTH;
+            int celdaY2 = checkY2 / WallDrawing.WIDTH;
+
+            // Guardamos de que el índice no se salga del mapa
+            int maxF = m.length - 1;
+            int maxC = m[0].length - 1;
+            celdaX1 = Math.max(0, Math.min(celdaX1, maxC));
+            celdaX2 = Math.max(0, Math.min(celdaX2, maxC));
+            celdaY1 = Math.max(0, Math.min(celdaY1, maxF));
+            celdaY2 = Math.max(0, Math.min(celdaY2, maxF));
+
+            boolean choca = m[celdaY1][celdaX1] == 1 || m[celdaY2][celdaX2] == 1
+                    || m[celdaY1][celdaX2] == 1 || m[celdaY2][celdaX1] == 1;
+
+            if (!choca) {
                 pacman.move(dx, dy);
             }
             getContentPane().repaint();
