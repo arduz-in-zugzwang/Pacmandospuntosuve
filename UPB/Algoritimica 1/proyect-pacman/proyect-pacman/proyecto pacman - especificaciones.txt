@@ -1,0 +1,50 @@
+Proyecto: PACMAN
+A continuación se detalla las reglas que debe tener el juego.
+
+NIVEL
+  Debera haber 3 niveles a jugar
+  Cada nivel empezara desde uno mas pequeño hasta mas grande
+  cada nivel cera cerrado por muros
+
+COMIDA
+  En gran parte del juego debe haber comidas para que el pacman sume puntos
+  
+ENEMIGOS/FANTASMAS
+  Los enemigos se moveran automaticamente en direcciones horizontales o verticales
+    Si un enemigo choca con una pared rebota en sentido contrario en la misma direccion
+  Si un enemigo logra ver al pacman, el enemigo debe empezar a perseguir al pacman
+  Si un enemigo choca con el pacman se termina el juego
+
+PACMAN
+  El pacman podra avanzar en direcciones N, E, S, O mediante el uso del teclado
+  El pacman debe poder avanzar solo en la direccion que fue indicada
+  El pacman al chocar con una pared ya no podra avanzar mas en esa direccion
+  El pacman al chocar con una comida, esto sera puntos para el.
+
+PREMIO MAYOR
+  Una vez se terminen todas comidas se debera habilitar el premio mayor
+  Dicho premio debera estar en la posicion del centro del juego
+  Una vez obtenido el premio se debera pasar al siguiente nivel
+
+PLUS PACMAN
+  Cada 60 segundos debe aparecer un plus de congelamiento que caiga desde arriba
+  Al tomarlo el pacman podra lanzar dicho congelador a un enemigo, el cual quedara congelado por 30 segunos
+
+FIN JUEGO
+  El juego termina cuando el pacman es alcanzado por un enemigo
+  El juego debera tener un tiempo predefinido para completarse, caso contrario se terminara el juego
+
+El juego debe contar con sonidos e imagenes dinamicas
+
+
+URLS
+
+Sprites
+https://www.spriters-resource.com/arcade/pacman
+https://www.spriters-resource.com/arcade/pacman/asset/52631/
+
+Efectos de sonidos
+https://www.voicy.network/es/official-soundboards/games/pacman
+
+Drive se compartiran recursos como imagenes, sprites y audios
+https://drive.google.com/drive/folders/1kxDXXfbbugOCS64XG_O0Kb4Y0RCLZw-v?usp=sharing
