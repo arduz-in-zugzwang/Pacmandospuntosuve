@@ -38,10 +38,10 @@ public class PacmanDrawing extends JComponent {
         this.x = x;
         this.y = y;
         setBounds(x, y, WIDTH, WIDTH); // obligatorio
-        biDerecha   = BufferedImageUtil.readImage("pacman/pacaman-derecha.png", getClass());
-        biIzquierda = BufferedImageUtil.readImage("pacman/pacman-izquierda.png", getClass());
-        biArriba    = BufferedImageUtil.readImage("pacman/pacman-arriba.png", getClass());
-        biAbajo     = BufferedImageUtil.readImage("pacman/pacman-abajo.png", getClass());
+        biDerecha   = BufferedImageUtil.readImage("pacman/pacman-e.png", getClass());
+        biIzquierda = BufferedImageUtil.readImage("pacman/oeste.png", getClass());
+        biArriba    = BufferedImageUtil.readImage("pacman/norte.png", getClass());
+        biAbajo     = BufferedImageUtil.readImage("pacman/sur.png", getClass());
         bi = biDerecha; // por defecto
 
 //        bi = BufferedImageUtil.readImage("pacman/pacman-e.png", getClass());

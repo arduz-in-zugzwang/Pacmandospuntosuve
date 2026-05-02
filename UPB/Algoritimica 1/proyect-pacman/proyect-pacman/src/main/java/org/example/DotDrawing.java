@@ -30,7 +30,7 @@ public class DotDrawing extends JComponent {
         Graphics2D g2d = (Graphics2D) g;
 
 //        g2d.drawImage(bi, 0, 0, WIDTH, WIDTH, this);
-        g2d.setColor(Color.darkGray);
+        g2d.setColor(Color.WHITE);
         g2d.fillOval(20, 20, 10, 10); // circulito en el centro
     }
 }

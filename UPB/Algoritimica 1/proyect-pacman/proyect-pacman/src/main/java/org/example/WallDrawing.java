@@ -20,15 +20,25 @@ public class WallDrawing extends JComponent {
     private int x;
     private int y;
 
-    private BufferedImage bi;
+    private BufferedImage bi; // esto no cambia
 
-    public WallDrawing(int x, int y) {
+    public WallDrawing(int x, int y, int tipo) {
         id = UUID.randomUUID().toString();
         this.x = x;
         this.y = y;
-        setBounds(x, y, WIDTH, WIDTH); // obligatorio
+        setBounds(x, y, WIDTH, WIDTH);
 
-        bi = BufferedImageUtil.readImage("pared.jpg", getClass());
+        String[] imagenes = {
+                "",
+                "paredes/horizontal.png",
+                "paredes/vertical.png",
+                "paredes/esq-izq-sup.png",
+                "paredes/esq-der-sup.png",
+                "paredes/esq-izq-inf.png",
+                "paredes/esq-der-inf.png",
+        };
+
+        bi = BufferedImageUtil.readImage(imagenes[tipo], getClass());
     }
 
     @Override
