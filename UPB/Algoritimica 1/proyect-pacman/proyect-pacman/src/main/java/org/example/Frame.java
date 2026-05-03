@@ -32,6 +32,7 @@ public class Frame extends JFrame {
     };
 
     List<DotDrawing> puntos = new ArrayList<>();
+    int puntaje = 0;
 
     PacmanDrawing pacman;
     int dx = 2;
@@ -40,7 +41,8 @@ public class Frame extends JFrame {
     public Frame() throws HeadlessException {
         setTitle("Pacman");
         setSize(1000, 700);
-        getContentPane().setBackground(Color.BLACK);
+//        getContentPane().setBackground(Color.BLACK);
+        getContentPane().setBackground(new Color(178, 216, 198));
         getContentPane().setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //        getContentPane().setLayout(null);
@@ -100,60 +102,79 @@ public class Frame extends JFrame {
         setFocusable(true);
         requestFocus();
 
+        // en el Timer, reemplazá el movimiento actual por esto:
         Timer gameLoop = new Timer(16, e -> {
             int nextX = pacman.getX() + dx;
             int nextY = pacman.getY() + dy;
 
-            int tolerance = 12;  //margen
-            int checkX1 = nextX + tolerance;
-            int checkY1 = nextY + tolerance;
-            int checkX2 = nextX + PacmanDrawing.WIDTH - 1 - tolerance;
-            int checkY2 = nextY + PacmanDrawing.WIDTH - 1 - tolerance;
+            // alineación a grilla al moverse horizontalmente
+            if (dx != 0) {
+                int resto = nextY % WallDrawing.WIDTH;
+                if (resto != 0) {
+                    // snap suave hacia la celda más cercana
+                    nextY = (resto < WallDrawing.WIDTH / 2)
+                            ? nextY - resto
+                            : nextY + (WallDrawing.WIDTH - resto);
+                }
+            }
 
-            int celdaX1 = checkX1 / WallDrawing.WIDTH;
-            int celdaX2 = checkX2 / WallDrawing.WIDTH;
-            int celdaY1 = checkY1 / WallDrawing.WIDTH;
-            int celdaY2 = checkY2 / WallDrawing.WIDTH;
+            // alineación a grilla al moverse verticalmente
+            if (dy != 0) {
+                int resto = nextX % WallDrawing.WIDTH;
+                if (resto != 0) {
+                    nextX = (resto < WallDrawing.WIDTH / 2)
+                            ? nextX - resto
+                            : nextX + (WallDrawing.WIDTH - resto);
+                }
+            }
 
+            int tolerance = 2; // con snap, tolerancia mínima alcanza
             int maxF = m.length - 1;
             int maxC = m[0].length - 1;
-            celdaX1 = Math.max(0, Math.min(celdaX1, maxC));
-            celdaX2 = Math.max(0, Math.min(celdaX2, maxC));
-            celdaY1 = Math.max(0, Math.min(celdaY1, maxF));
-            celdaY2 = Math.max(0, Math.min(celdaY2, maxF));
+
+            int celdaX1 = Math.max(0, Math.min((nextX + tolerance) / WallDrawing.WIDTH, maxC));
+            int celdaX2 = Math.max(0, Math.min((nextX + PacmanDrawing.WIDTH - 1 - tolerance) / WallDrawing.WIDTH, maxC));
+            int celdaY1 = Math.max(0, Math.min((nextY + tolerance) / WallDrawing.WIDTH, maxF));
+            int celdaY2 = Math.max(0, Math.min((nextY + PacmanDrawing.WIDTH - 1 - tolerance) / WallDrawing.WIDTH, maxF));
 
             boolean choca = esWall(m[celdaY1][celdaX1]) || esWall(m[celdaY2][celdaX2])
                     || esWall(m[celdaY1][celdaX2]) || esWall(m[celdaY2][celdaX1]);
 
             if (!choca) {
-                pacman.move(dx, dy);
+                pacman.move(nextX - pacman.getX(), nextY - pacman.getY());
             }
 
-            // celda donde está el centro del pacman
             int celdaPacX = (pacman.getX() + PacmanDrawing.WIDTH / 2) / WallDrawing.WIDTH;
             int celdaPacY = (pacman.getY() + PacmanDrawing.WIDTH / 2) / WallDrawing.WIDTH;
 
-// buscás en la lista si hay un punto en esa celda
             for (int i = 0; i < puntos.size(); i++) {
                 DotDrawing dot = puntos.get(i);
                 int celdaDotX = dot.getX() / WallDrawing.WIDTH;
                 int celdaDotY = dot.getY() / WallDrawing.WIDTH;
 
                 if (celdaPacX == celdaDotX && celdaPacY == celdaDotY) {
-                    m[celdaDotY][celdaDotX] = -1; // ya no es punto
-                    getContentPane().remove(dot); // lo quitás del panel
-                    puntos.remove(i);            // lo quitás de la lista
+                    m[celdaDotY][celdaDotX] = -1;
+                    getContentPane().remove(dot);
+                    puntos.remove(i);
+                    puntaje++;
                     break;
                 }
             }
-
-            getContentPane().repaint();
+//            getContentPane().repaint();
         });
         gameLoop.start();
     }
 
     private boolean esWall(int celda) {
         return celda >= 1 && celda <= 6;
+    }
+
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString("Puntaje: " + puntaje, 20, 20);
     }
 
     public static void main(String[] args) {
