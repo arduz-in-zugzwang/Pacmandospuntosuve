@@ -16,20 +16,51 @@ import java.util.List;
 public class Frame extends JFrame {
 
     //nivel 1
-    //nivel 1 - Mapa tradicional de Pacman
-    //nivel 1 - Mapa simple y simétrico
     int[][] m = {
-            {3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4},
-            {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2},
-            {2, 0, 3, 1, 4, 0, 0, 0, 0, 0, 3, 1, 4, 0, 2},
-            {2, 0, 5, 1, 6, 0, 0, 0, 0, 0, 5, 1, 6, 0, 2},
-            {2, 0, 0, 0, 0, 0, 3, 1, 4, 0, 0, 0, 0, 0, 2},
-            {2, 0, 0, 0, 0, 0, 5, 1, 6, 0, 0, 0, 0, 0, 2},
-            {2, 0, 3, 1, 4, 0, 0, 0, 0, 0, 3, 1, 4, 0, 2},
-            {2, 0, 5, 1, 6, 0, 0, 0, 0, 0, 5, 1, 6, 0, 2},
-            {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2},
-            {5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6},
+            {3,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
+            {2,0,0,0,0,0,3,1,4,0,0,0,6,5,2},
+            {2,0,0,0,0,0,5,1,6,0,0,0,4,3,2},
+            {2,0,7,0,0,0,0,0,0,0,0,0,0,0,2},
+            {2,0,0,3,1,4,0,0,0,0,3,1,4,0,2},
+            {2,0,0,0,2,0,0,0,0,0,0,2,0,0,2},
+            {2,0,0,0,2,0,0,1,1,0,0,2,0,0,2},
+            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
+            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
+            {5,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
     };
+
+    int[][] m2 = {
+            {3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
+            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
+            {2,0,3,1,4,0,0,0,0,7,0,0,0,0,0,0,2},
+            {2,0,0,0,2,0,0,7,0,0,0,3,1,4,0,0,2},
+            {2,0,0,0,5,1,4,0,0,0,0,0,2,2,0,0,2},
+            {2,0,7,0,0,0,2,0,0,0,0,0,5,1,4,0,2},
+            {2,0,0,0,0,0,2,0,7,0,3,0,0,0,2,0,2},
+            {2,0,3,1,1,1,6,0,0,0,2,0,0,0,2,0,2},
+            {2,0,0,0,0,0,0,0,0,0,5,1,0,0,6,0,2},
+            {2,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,2},
+            {5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
+    };
+
+    // 17 columnas x 11 filas → 850x550px
+    int[][] m3 = {
+            {3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
+            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
+            {2,0,3,1,4,0,0,0,7,0,0,0,3,1,4,0,2},
+            {2,0,2,0,0,0,7,0,0,0,7,0,0,0,2,0,2},
+            {2,0,2,0,3,1,4,0,0,0,3,1,4,0,2,0,2},
+            {2,0,5,0,2,0,0,0,0,0,0,0,2,0,6,0,2},
+            {2,0,0,0,2,0,7,0,3,0,7,0,2,0,0,0,2},
+            {2,0,3,0,5,1,4,0,2,0,3,1,6,0,4,0,2},
+            {2,0,2,0,0,0,0,0,2,0,0,0,0,0,2,0,2},
+            {2,0,5,1,1,1,4,0,5,0,3,1,1,1,6,0,2},
+            {2,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,2},
+            {2,0,7,0,0,0,5,1,1,1,6,0,0,0,7,0,2},
+            {5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
+    };
+
+
 
     List<DotDrawing> puntos = new ArrayList<>();
     int puntaje = 0;
@@ -38,11 +69,13 @@ public class Frame extends JFrame {
     int dx = 2;
     int dy = 0;
 
+    List<GhostDrawing> fantasmas = new ArrayList<>();
+
     public Frame() throws HeadlessException {
         setTitle("Pacman");
         setSize(1000, 700);
 //        getContentPane().setBackground(Color.BLACK);
-        getContentPane().setBackground(new Color(178, 216, 198));
+        getContentPane().setBackground(new Color(178, 230, 198));
         getContentPane().setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //        getContentPane().setLayout(null);
@@ -73,6 +106,16 @@ public class Frame extends JFrame {
         pacman = new PacmanDrawing(1 * WallDrawing.WIDTH, 1 * WallDrawing.WIDTH);
         getContentPane().add(pacman);
         repaint();
+
+//        GhostDrawing f1 = new GhostDrawing(3 * WallDrawing.WIDTH, 1 * WallDrawing.WIDTH,  2,  0, "Amarillo");
+//        GhostDrawing f2 = new GhostDrawing(8 * WallDrawing.WIDTH, 1 * WallDrawing.WIDTH, -2,  0, "Cyan");
+//        GhostDrawing f3 = new GhostDrawing(3 * WallDrawing.WIDTH, 8 * WallDrawing.WIDTH,  2,  0, "Rojo");
+//        GhostDrawing f4 = new GhostDrawing(8 * WallDrawing.WIDTH, 8 * WallDrawing.WIDTH,  0, -2, "Rosa");
+//
+//        for (GhostDrawing f : List.of(f1, f2, f3, f4)) {
+//            fantasmas.add(f);
+//            getContentPane().add(f);
+//        }
 
         System.out.println("frame creado");
         getContentPane().repaint();
@@ -161,12 +204,22 @@ public class Frame extends JFrame {
                 }
             }
 //            getContentPane().repaint();
+//            for (GhostDrawing fantasma : fantasmas) {
+//                fantasma.move(m);
+//
+//                boolean tocaPacman = Math.abs(fantasma.getX() - pacman.getX()) < GhostDrawing.WIDTH / 2
+//                        && Math.abs(fantasma.getY() - pacman.getY()) < GhostDrawing.WIDTH / 2;
+//                if (tocaPacman) {
+//                    System.out.println("¡Game over!");
+//                    // después acá va la pantalla de fin
+//                }
+//            }
         });
         gameLoop.start();
     }
 
     private boolean esWall(int celda) {
-        return celda >= 1 && celda <= 6;
+        return celda >= 1 && celda <= 7;
     }
 
     @Override

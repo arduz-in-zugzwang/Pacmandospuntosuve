@@ -36,6 +36,7 @@ public class WallDrawing extends JComponent {
                 "paredes/esq-der-sup.png",
                 "paredes/esq-izq-inf.png",
                 "paredes/esq-der-inf.png",
+                "paredes/bloque.png",
         };
 
         bi = BufferedImageUtil.readImage(imagenes[tipo], getClass());

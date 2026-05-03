@@ -19,7 +19,7 @@ public class DotDrawing extends JComponent {
         this.y = y;
         setBounds(x, y, WIDTH, WIDTH); // obligatorio
 
-//        bi = BufferedImageUtil.readImage("wall.jpg", getClass());
+        bi = BufferedImageUtil.readImage("paredes/girasol2.png", getClass());
     }
 
     @Override
@@ -29,8 +29,8 @@ public class DotDrawing extends JComponent {
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
 
-//        g2d.drawImage(bi, 0, 0, WIDTH, WIDTH, this);
-        g2d.setColor(Color.WHITE);
-        g2d.fillOval(20, 20, 10, 10); // circulito en el centro
+        g2d.drawImage(bi, 0, 0, WIDTH, WIDTH, this);
+//        g2d.setColor(Color.WHITE);
+//        g2d.fillOval(20, 20, 10, 10); // circulito en el centro
     }
 }

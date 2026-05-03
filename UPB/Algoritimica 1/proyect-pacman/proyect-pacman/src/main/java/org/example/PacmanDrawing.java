@@ -27,7 +27,7 @@ public class PacmanDrawing extends JComponent {
 
     private BufferedImage bi;
     private long prevTime;
-    private long changeFrameTime = 500; // ms, cada tiempo yo quiero que pase al cambiar de sprite
+    private long changeFrameTime = 250; // ms, cada tiempo yo quiero que pase al cambiar de sprite
     int totalFrames = 2;
     int nroFilas = 1;
     int nroColumnas = 2;
