@@ -1,9 +1,11 @@
 package org.example.logic;
 
 import org.example.model.*;
+import org.example.ui.CopDrawing;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Juego {
 
@@ -12,6 +14,10 @@ public class Juego {
     private int posInitX = 0;
     private int posInitY = 0;
     public static final int FIGURA_WIDTH = 50;
+
+    private Copito copito;
+    private long prevSpawnCopito = System.currentTimeMillis();
+    private final long INTERVALO_SPAWN = 20_000L;
 
     private IJuego iJuego;
 
@@ -24,6 +30,8 @@ public class Juego {
 
         nivelActual = niveles.get(0);
         createUINivel(nivelActual);
+
+        copito = new Copito(0, 0);
     }
 
     public Nivel getNivelActual() {
@@ -43,22 +51,64 @@ public class Juego {
         }
     }
 
+    // ─── COPITO ───────────────────────────────────────────
+
+    public void actualizarCopito() {
+        long now = System.currentTimeMillis();
+        if (!copito.isVisible() && now - prevSpawnCopito >= INTERVALO_SPAWN) {
+            spawnCopito();
+            prevSpawnCopito = now;
+        }
+    }
+
+    private void spawnCopito() {
+        Random rnd = new Random();
+        int[][] m = nivelActual.getM();
+        int cols = m[0].length;
+        int filas = m.length;
+
+        for (int intento = 0; intento < 300; intento++) {
+            int col = rnd.nextInt(cols);
+            int fila = rnd.nextInt(filas);
+
+            if (m[fila][col] == 0) {
+                copito.setX(col * FIGURA_WIDTH + posInitX);
+                copito.setY(fila * FIGURA_WIDTH + posInitY);
+                copito.setVisible(true);
+                iJuego.drawCopito(copito);
+                return;
+            }
+        }
+    }
+
+    public void activarCongelamiento() {
+        copito.setVisible(false);
+        iJuego.removeCopito();
+        prevSpawnCopito = System.currentTimeMillis();
+
+        long now = System.currentTimeMillis();
+        for (Enemigo e : nivelActual.getEnemigos()) {
+            e.setCongelado(true);
+            e.setTiempoCongelado(now);
+        }
+    }
+
+    public void verificarDescongelamiento() {
+        long now = System.currentTimeMillis();
+        for (Enemigo e : nivelActual.getEnemigos()) {
+            if (e.isCongelado()) {
+                if (now - e.getTiempoCongelado() >= e.getDuracionCong()) {
+                    e.setCongelado(false);
+                }
+            }
+        }
+    }
+
+    // ─── NIVELES ──────────────────────────────────────────
+
     public Nivel getNivel1() {
         Nivel nivel = new Nivel();
         nivel.setNroNivel(1);
-        //carita llorrando
-//        int[][] m = {
-//                {3,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
-//                {2,0,0,0,0,0,3,1,4,0,0,0,6,5,2},
-//                {2,0,0,0,0,0,5,1,6,0,0,0,4,3,2},
-//                {2,0,7,0,0,0,0,0,0,0,0,0,0,0,2},
-//                {2,0,0,3,1,4,0,0,0,0,3,1,4,0,2},
-//                {2,0,0,0,2,0,0,0,0,0,0,2,0,0,2},
-//                {2,0,0,0,2,0,0,1,1,0,0,2,0,0,2},
-//                {2,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-//                {2,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-//                {5,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
-//        };
         int[][] m = {
                 {3,1,1,1,1,1,1,1,1,1,4},
                 {2,0,0,0,0,0,0,0,0,0,2},
@@ -71,11 +121,6 @@ public class Juego {
                 {2,0,0,0,0,0,0,0,0,0,2},
                 {5,1,1,1,1,1,1,1,1,1,6},
         };
-//        int[][] m = {{1, 1, 1, 1, 1}
-//                , {1, 0, 0,  0, 1}
-//                , {1, 0, 0, 0, 1}
-//                , {1, 0, 0, 0, 1}
-//                , {1, 1, 1, 1, 1}};
         nivel.setM(m);
         cargarBloques(nivel, m);
         nivel.setPacman(new Pacman(1 * FIGURA_WIDTH, 1 * FIGURA_WIDTH, FIGURA_WIDTH, 0));
@@ -99,12 +144,6 @@ public class Juego {
                 {2,0,5,1,1,1,1,1,1,1,6,2},
                 {5,1,1,1,1,1,1,1,1,1,1,6},
         };
-        //        int[][] m = {{1, 1, 1, 1, 1}
-//                , {1, 0, 0,  0, 1}
-//                , {1, 0, 1, 0, 1}
-//                , {1, 0, 0, 0, 1}
-//                , {1, 0, 0, 0, 1}
-//                , {1, 1, 1, 1, 1}};
         nivel.setM(m);
         cargarBloques(nivel, m);
         nivel.setPacman(new Pacman(1 * FIGURA_WIDTH, 1 * FIGURA_WIDTH, FIGURA_WIDTH, 15));
@@ -132,12 +171,6 @@ public class Juego {
                 {2,0,7,0,0,0,5,1,1,1,6,0,0,0,7,0,2},
                 {5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
         };
-//        int[][] m = {{1, 1, 1, 1, 1}
-//                , {1, 0, 0,  0, 1}
-//                , {1, 0, 1, 0, 1}
-//                , {1, 0, 0, 0, 1}
-//                , {1, 0, 0, 0, 1}
-//                , {1, 1, 1, 1, 1}};
         nivel.setM(m);
         cargarBloques(nivel, m);
         nivel.setPacman(new Pacman(1 * FIGURA_WIDTH, 1 * FIGURA_WIDTH, FIGURA_WIDTH, 15));
@@ -149,7 +182,8 @@ public class Juego {
         return nivel;
     }
 
-    // metodo comun para no repetir codigo en cada nivel
+    // ─── LÓGICA ───────────────────────────────────────────
+
     private void cargarBloques(Nivel nivel, int[][] m) {
         for (int f = 0; f < m.length; f++) {
             int y = f * FIGURA_WIDTH + posInitY;
@@ -158,7 +192,7 @@ public class Juego {
                 if (m[f][c] >= 1 && m[f][c] <= 7) {
                     nivel.getBloques().add(new Bloque(x, y, FIGURA_WIDTH, m[f][c], f, c));
                 }
-                if (m[f][c] == 0) {  // <- celda vacía = comida
+                if (m[f][c] == 0) {
                     nivel.getComidas().add(new Comida(x, y, FIGURA_WIDTH, false));
                 }
             }
@@ -168,7 +202,6 @@ public class Juego {
     private void comerComida() {
         Pacman p = nivelActual.getPacman();
 
-        // igual que tu Frame anterior, usa el centro del pacman
         int celdaPacX = (p.getX() + p.getWidth() / 2 - posInitX) / FIGURA_WIDTH;
         int celdaPacY = (p.getY() + p.getWidth() / 2 - posInitY) / FIGURA_WIDTH;
 
@@ -182,7 +215,7 @@ public class Juego {
                 iJuego.removeComida(comida);
 
                 if (comida.isEsPremioMayor()) {
-                    pasarSiguienteNivel(); // <- comió la fruta, avanza de nivel
+                    pasarSiguienteNivel();
                 } else {
                     nivelActual.setPuntosAcum(nivelActual.getPuntosAcum() + 1);
                     iJuego.updateScore(nivelActual.getPuntosAcum());
@@ -203,7 +236,6 @@ public class Juego {
         int centroF = m.length / 2;
         int centroC = m[0].length / 2;
 
-        // buscar celda libre más cercana al centro
         int celdaF = -1, celdaC = -1;
         int maxRadio = Math.max(m.length, m[0].length);
 
@@ -223,7 +255,7 @@ public class Juego {
             }
         }
 
-        if (celdaF == -1) return; // no hay celda libre (no debería pasar)
+        if (celdaF == -1) return;
 
         int x = celdaC * FIGURA_WIDTH + posInitX;
         int y = celdaF * FIGURA_WIDTH + posInitY;
@@ -242,7 +274,6 @@ public class Juego {
             int nextX = p.getX();
             int nextY = p.getY();
 
-            // snap al moverse horizontalmente
             if (p.getDirAdvance() == DireccionEnum.DERECHA || p.getDirAdvance() == DireccionEnum.IZQUIERDA) {
                 int resto = nextY % FIGURA_WIDTH;
                 if (resto != 0) {
@@ -252,7 +283,6 @@ public class Juego {
                 }
             }
 
-// snap al moverse verticalmente
             if (p.getDirAdvance() == DireccionEnum.ARRIBA || p.getDirAdvance() == DireccionEnum.ABAJO) {
                 int resto = nextX % FIGURA_WIDTH;
                 if (resto != 0) {
@@ -267,7 +297,6 @@ public class Juego {
             else if (p.getDirAdvance() == DireccionEnum.ARRIBA)    nextY -= 2;
             else if (p.getDirAdvance() == DireccionEnum.ABAJO)     nextY += 2;
 
-            // verificar colision
             boolean hayColision = false;
             int tolerance = 2;
             int maxF = nivelActual.getM().length - 1;
@@ -295,8 +324,14 @@ public class Juego {
     }
 
     public void moverEnemigos() {
+        // actualizar copito y descongelamiento en cada tick
+        actualizarCopito();
+        verificarDescongelamiento();
+
         int[][] m = nivelActual.getM();
         for (Enemigo enemigo : nivelActual.getEnemigos()) {
+            // NUEVO: fantasmas congelados no se mueven
+            if (enemigo.isCongelado()) continue;
             moverEnemigo(enemigo, m);
         }
         iJuego.updateEnemigos();
@@ -310,7 +345,6 @@ public class Juego {
         int maxC = m[0].length - 1;
         Pacman p = nivelActual.getPacman();
 
-        // inicializar destino la primera vez
         if (!enemigo.isIniciado()) {
             int cX = enemigo.getX() / FIGURA_WIDTH;
             int cY = enemigo.getY() / FIGURA_WIDTH;
@@ -322,7 +356,6 @@ public class Juego {
         int destPixelX = enemigo.getCeldaDestX() * FIGURA_WIDTH;
         int destPixelY = enemigo.getCeldaDestY() * FIGURA_WIDTH;
 
-        // moverse suavemente hacia el destino
         int paso = 2;
         if (enemigo.getX() < destPixelX) enemigo.setX(Math.min(enemigo.getX() + paso, destPixelX));
         else if (enemigo.getX() > destPixelX) enemigo.setX(Math.max(enemigo.getX() - paso, destPixelX));
@@ -330,12 +363,10 @@ public class Juego {
         if (enemigo.getY() < destPixelY) enemigo.setY(Math.min(enemigo.getY() + paso, destPixelY));
         else if (enemigo.getY() > destPixelY) enemigo.setY(Math.max(enemigo.getY() - paso, destPixelY));
 
-        // cuando llega al destino, elegir siguiente celda
         if (enemigo.getX() == destPixelX && enemigo.getY() == destPixelY) {
             int celdaX = enemigo.getX() / FIGURA_WIDTH;
             int celdaY = enemigo.getY() / FIGURA_WIDTH;
 
-            // persecución si ve al pacman
             if (puedeVerPacman(enemigo, p, m)) {
                 int difX = p.getX() - enemigo.getX();
                 int difY = p.getY() - enemigo.getY();
@@ -348,12 +379,10 @@ public class Juego {
                 }
             }
 
-            // siguiente celda en dirección actual
             int nextCX = Math.max(0, Math.min(celdaX + enemigo.getDx(), maxC));
             int nextCY = Math.max(0, Math.min(celdaY + enemigo.getDy(), maxF));
 
             if (esWall(m[nextCY][nextCX])) {
-                // choca — intentar girar
                 if (enemigo.getDx() != 0) {
                     int abajoCY = Math.min(celdaY + 1, maxF);
                     int arribaCY = Math.max(celdaY - 1, 0);
@@ -375,7 +404,6 @@ public class Juego {
                         enemigo.setDy(-enemigo.getDy());
                     }
                 }
-                // recalcular con nueva dirección
                 nextCX = Math.max(0, Math.min(celdaX + enemigo.getDx(), maxC));
                 nextCY = Math.max(0, Math.min(celdaY + enemigo.getDy(), maxF));
                 if (esWall(m[nextCY][nextCX])) {
@@ -397,6 +425,9 @@ public class Juego {
     }
 
     private boolean colisionConPacman(Enemigo enemigo, Pacman p) {
+        // NUEVO: congelados no matan
+        if (enemigo.isCongelado()) return false;
+
         int margen = 20;
         return Math.abs(enemigo.getX() - p.getX()) < margen
                 && Math.abs(enemigo.getY() - p.getY()) < margen;
@@ -408,7 +439,7 @@ public class Juego {
         int pCeldaX = p.getX() / FIGURA_WIDTH;
         int pCeldaY = p.getY() / FIGURA_WIDTH;
 
-        // misma fila
+        // misma fila — sin cambios
         if (eCeldaY == pCeldaY) {
             int c1 = Math.min(eCeldaX, pCeldaX);
             int c2 = Math.max(eCeldaX, pCeldaX);
@@ -417,7 +448,8 @@ public class Juego {
             }
             return true;
         }
-        // misma columna
+
+        // misma columna — sin cambios
         if (eCeldaX == pCeldaX) {
             int f1 = Math.min(eCeldaY, pCeldaY);
             int f2 = Math.max(eCeldaY, pCeldaY);
@@ -426,6 +458,29 @@ public class Juego {
             }
             return true;
         }
+
+        // NUEVO: fila cercana (+-1 celda) — el fantasma va horizontal y pacman está una fila arriba/abajo
+        if (Math.abs(eCeldaY - pCeldaY) == 1) {
+            int c1 = Math.min(eCeldaX, pCeldaX);
+            int c2 = Math.max(eCeldaX, pCeldaX);
+            boolean hayPared = false;
+            for (int c = c1; c <= c2; c++) {
+                if (esWall(m[eCeldaY][c])) { hayPared = true; break; }
+            }
+            if (!hayPared) return true;
+        }
+
+        // NUEVO: columna cercana (+-1 celda) — el fantasma va vertical y pacman está una columna al lado
+        if (Math.abs(eCeldaX - pCeldaX) == 1) {
+            int f1 = Math.min(eCeldaY, pCeldaY);
+            int f2 = Math.max(eCeldaY, pCeldaY);
+            boolean hayPared = false;
+            for (int f = f1; f <= f2; f++) {
+                if (esWall(m[f][eCeldaX])) { hayPared = true; break; }
+            }
+            if (!hayPared) return true;
+        }
+
         return false;
     }
 

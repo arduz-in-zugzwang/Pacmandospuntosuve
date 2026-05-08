@@ -4,10 +4,10 @@ import org.example.logic.IJuego;
 import org.example.logic.Juego;
 import org.example.model.Bloque;
 import org.example.model.Comida;
+import org.example.model.Copito;
 import org.example.model.DireccionEnum;
 import org.example.model.Pacman;
 import org.example.model.Enemigo;
-import java.util.List;
 import org.example.ui.*;
 
 import javax.swing.*;
@@ -15,6 +15,7 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Frame extends JFrame implements IJuego {
 
@@ -25,10 +26,13 @@ public class Frame extends JFrame implements IJuego {
     private Timer timerJuego;
     private JLabel lblTimer;
     private int segundosRestantes;
-    private static final int TIEMPO_POR_NIVEL = 180; // 3 minutos
+    private static final int TIEMPO_POR_NIVEL = 180;  //segundos
     private GamePanel panel;
     JLabel lblScore;
-    private JPanel panelHUD; // <- campo nuevo
+    private JPanel panelHUD;
+
+    // NUEVO
+    private CopDrawing copDrawing;
 
     private class GamePanel extends JPanel {
         public GamePanel() {
@@ -54,21 +58,21 @@ public class Frame extends JFrame implements IJuego {
         panel = new GamePanel();
         setContentPane(panel);
 
-        // HUD
         panelHUD = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
-        panelHUD.setBackground(new Color(69,169,101, 120));
-        //69,169,101
+        panelHUD.setBackground(new Color(69, 169, 101, 120));
         panelHUD.setOpaque(true);
         panelHUD.setBounds(0, 0, 500, 35);
 
         lblScore = new JLabel("Score: 0");
         lblScore.setForeground(Color.WHITE);
-        lblScore.setFont(new Font("Comic Sans", Font.BOLD, 20));
+        lblScore.setFont(new Font("Arial", Font.BOLD, 20));
         lblScore.setOpaque(false);
 
-        lblTimer = new JLabel("Tiempo: 3:00");
+        int minInit = TIEMPO_POR_NIVEL / 60;
+        int segInit = TIEMPO_POR_NIVEL % 60;
+        lblTimer = new JLabel(String.format("Tiempo: %d:%02d", minInit, segInit));
         lblTimer.setForeground(Color.WHITE);
-        lblTimer.setFont(new Font("Comic Sans", Font.BOLD, 20));
+        lblTimer.setFont(new Font("Arial", Font.BOLD, 20));
         lblTimer.setOpaque(false);
 
         panelHUD.add(lblScore);
@@ -114,7 +118,7 @@ public class Frame extends JFrame implements IJuego {
     private void iniciarTimer() {
         if (timerJuego != null) timerJuego.stop();
         segundosRestantes = TIEMPO_POR_NIVEL;
-        timerJuego = new Timer(1000, e -> { //ms
+        timerJuego = new Timer(500, e -> {  // 1000 = normal, 500 = 2x rápido, 250 = 4x rápido
             segundosRestantes--;
             int min = segundosRestantes / 60;
             int seg = segundosRestantes % 60;
@@ -190,6 +194,7 @@ public class Frame extends JFrame implements IJuego {
         panel.removeAll();
         panel.add(panelHUD);
         ghostDrawings.clear();
+        copDrawing = null;  // NUEVO: limpiar referencia al copito
         panel.repaint();
         iniciarTimer();
     }
@@ -218,7 +223,6 @@ public class Frame extends JFrame implements IJuego {
     public void drawEnemigo(Enemigo enemigo) {
         GhostDrawing gd = new GhostDrawing(enemigo);
         ghostDrawings.add(gd);
-        // sin add al panel
     }
 
     @Override
@@ -226,10 +230,33 @@ public class Frame extends JFrame implements IJuego {
         for (GhostDrawing gd : ghostDrawings) {
             gd.actualizarImagenPublic();
         }
-        panel.repaint(); // GamePanel.paintComponent pinta los fantasmas
+        panel.repaint();
     }
 
-    // SIN override de paint
+    // NUEVO: muestra el copito en pantalla y conecta el click
+    @Override
+    public void drawCopito(Copito copito) {
+        if (copDrawing != null) {
+            panel.remove(copDrawing);
+        }
+        copDrawing = new CopDrawing(copito);
+        copDrawing.setOnClick(() -> juego.activarCongelamiento());
+        panel.add(copDrawing);
+        panel.setComponentZOrder(copDrawing, 0); // encima de todo
+        panel.revalidate();
+        panel.repaint();
+    }
+
+    // quitar copito de la pantalla
+    @Override
+    public void removeCopito() {
+        if (copDrawing != null) {
+            panel.remove(copDrawing);
+            copDrawing = null;
+            panel.revalidate();
+            panel.repaint();
+        }
+    }
 
     public static void main(String[] args) {
         new Frame();

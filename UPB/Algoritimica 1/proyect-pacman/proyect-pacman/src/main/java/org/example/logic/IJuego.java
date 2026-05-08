@@ -1,9 +1,6 @@
 package org.example.logic;
 
-import org.example.model.Bloque;
-import org.example.model.Comida;
-import org.example.model.Enemigo;
-import org.example.model.Pacman;
+import org.example.model.*;
 
 /**
  * IJuego
@@ -34,4 +31,7 @@ public interface IJuego {
     void updateEnemigos();
 
     void gameOver();
+
+    void drawCopito(Copito copito);
+    void removeCopito();
 }

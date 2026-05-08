@@ -30,6 +30,12 @@ public class GhostDrawing extends JComponent {
     int nroFilas = 1;
     int frame = 0;
 
+    private BufferedImage biCongelado;    // fantasma azul (congelado)
+    private BufferedImage biAdvertencia;  // fantasma parpadeante (por volver)
+    private boolean parpadeoVisible = true;
+    private long prevParpadeo;
+    private long intervalParpadeo = 200;
+
     public GhostDrawing(Enemigo enemigo) {
         id = UUID.randomUUID().toString();
         this.enemigo = enemigo;
@@ -43,6 +49,9 @@ public class GhostDrawing extends JComponent {
         biIzquierda = BufferedImageUtil.readImage(base + "izquierda.png", getClass());
         biArriba    = BufferedImageUtil.readImage(base + "arriba.png",    getClass());
         biAbajo     = BufferedImageUtil.readImage(base + "abajo.png",     getClass());
+
+        biCongelado   = BufferedImageUtil.readImage("Fantasmas/fantasma-empieza.png", getClass());
+        biAdvertencia = BufferedImageUtil.readImage("Fantasmas/fantasma-termina.png", getClass());
 
         actualizarImagen();
     }
@@ -98,6 +107,25 @@ public class GhostDrawing extends JComponent {
     }
 
     private void actualizarImagen() {
+        if (enemigo.isCongelado()) {
+            long tiempoRestante = enemigo.getDuracionCong()
+                    - (System.currentTimeMillis() - enemigo.getTiempoCongelado());
+
+            if (tiempoRestante <= enemigo.getTiempoAdvertencia()) {
+                // Modo advertencia: parpadeo entre congelado y advertencia
+                long now = System.currentTimeMillis();
+                if (now - prevParpadeo > intervalParpadeo) {
+                    parpadeoVisible = !parpadeoVisible;
+                    prevParpadeo = now;
+                }
+                bi = parpadeoVisible ? biCongelado : biAdvertencia;
+            } else {
+                bi = biCongelado;
+            }
+            return;
+        }
+
+        // Estado normal
         if (enemigo.getDx() > 0) bi = biDerecha;
         if (enemigo.getDx() < 0) bi = biIzquierda;
         if (enemigo.getDy() < 0) bi = biArriba;
