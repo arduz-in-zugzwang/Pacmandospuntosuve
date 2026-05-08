@@ -1,143 +1,101 @@
 package org.example;
 
+import org.example.logic.IJuego;
+import org.example.logic.Juego;
+import org.example.model.Bloque;
+import org.example.model.Comida;
+import org.example.model.DireccionEnum;
+import org.example.model.Pacman;
+import org.example.model.Enemigo;
+import java.util.List;
+import org.example.ui.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Frame
- *
- * @author Marcos Quispe
- * @since 1.0
- */
-public class Frame extends JFrame {
+public class Frame extends JFrame implements IJuego {
 
-    //nivel 1
-    int[][] m = {
-            {3,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
-            {2,0,0,0,0,0,3,1,4,0,0,0,6,5,2},
-            {2,0,0,0,0,0,5,1,6,0,0,0,4,3,2},
-            {2,0,7,0,0,0,0,0,0,0,0,0,0,0,2},
-            {2,0,0,3,1,4,0,0,0,0,3,1,4,0,2},
-            {2,0,0,0,2,0,0,0,0,0,0,2,0,0,2},
-            {2,0,0,0,2,0,0,1,1,0,0,2,0,0,2},
-            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-            {5,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
-    };
+    private Juego juego;
+    private PacmanDrawing pacmanDrawing;
+    private Timer gameLoop;
+    private List<GhostDrawing> ghostDrawings = new ArrayList<>();
+    private Timer timerJuego;
+    private JLabel lblTimer;
+    private int segundosRestantes;
+    private static final int TIEMPO_POR_NIVEL = 180; // 3 minutos
+    private GamePanel panel;
+    JLabel lblScore;
+    private JPanel panelHUD; // <- campo nuevo
 
-    int[][] m2 = {
-            {3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
-            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-            {2,0,3,1,4,0,0,0,0,7,0,0,0,0,0,0,2},
-            {2,0,0,0,2,0,0,7,0,0,0,3,1,4,0,0,2},
-            {2,0,0,0,5,1,4,0,0,0,0,0,2,2,0,0,2},
-            {2,0,7,0,0,0,2,0,0,0,0,0,5,1,4,0,2},
-            {2,0,0,0,0,0,2,0,7,0,3,0,0,0,2,0,2},
-            {2,0,3,1,1,1,6,0,0,0,2,0,0,0,2,0,2},
-            {2,0,0,0,0,0,0,0,0,0,5,1,0,0,6,0,2},
-            {2,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,2},
-            {5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
-    };
+    private class GamePanel extends JPanel {
+        public GamePanel() {
+            setLayout(null);
+            setBackground(new Color(178, 230, 198));
+            setDoubleBuffered(true);
+        }
 
-    // 17 columnas x 11 filas → 850x550px
-    int[][] m3 = {
-            {3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,4},
-            {2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2},
-            {2,0,3,1,4,0,0,0,7,0,0,0,3,1,4,0,2},
-            {2,0,2,0,0,0,7,0,0,0,7,0,0,0,2,0,2},
-            {2,0,2,0,3,1,4,0,0,0,3,1,4,0,2,0,2},
-            {2,0,5,0,2,0,0,0,0,0,0,0,2,0,6,0,2},
-            {2,0,0,0,2,0,7,0,3,0,7,0,2,0,0,0,2},
-            {2,0,3,0,5,1,4,0,2,0,3,1,6,0,4,0,2},
-            {2,0,2,0,0,0,0,0,2,0,0,0,0,0,2,0,2},
-            {2,0,5,1,1,1,4,0,5,0,3,1,1,1,6,0,2},
-            {2,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,2},
-            {2,0,7,0,0,0,5,1,1,1,6,0,0,0,7,0,2},
-            {5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
-    };
-
-
-
-    List<DotDrawing> puntos = new ArrayList<>();
-    int puntaje = 0;
-
-    PacmanDrawing pacman;
-    int dx = 2;
-    int dy = 0;
-
-    List<GhostDrawing> fantasmas = new ArrayList<>();
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            for (GhostDrawing gd : ghostDrawings) {
+                gd.paintComponent(g, gd.getEnemigo().getX(), gd.getEnemigo().getY());
+            }
+        }
+    }
 
     public Frame() throws HeadlessException {
         setTitle("Pacman");
         setSize(1000, 700);
-//        getContentPane().setBackground(Color.BLACK);
-        getContentPane().setBackground(new Color(178, 230, 198));
-        getContentPane().setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        getContentPane().setLayout(null);
+
+        panel = new GamePanel();
+        setContentPane(panel);
+
+        // HUD
+        panelHUD = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
+        panelHUD.setBackground(new Color(69,169,101, 120));
+        //69,169,101
+        panelHUD.setOpaque(true);
+        panelHUD.setBounds(0, 0, 500, 35);
+
+        lblScore = new JLabel("Score: 0");
+        lblScore.setForeground(Color.WHITE);
+        lblScore.setFont(new Font("Comic Sans", Font.BOLD, 20));
+        lblScore.setOpaque(false);
+
+        lblTimer = new JLabel("Tiempo: 3:00");
+        lblTimer.setForeground(Color.WHITE);
+        lblTimer.setFont(new Font("Comic Sans", Font.BOLD, 20));
+        lblTimer.setOpaque(false);
+
+        panelHUD.add(lblScore);
+        panelHUD.add(lblTimer);
+        panel.add(panelHUD);
+
         setVisible(true);
-
-//        WallDrawing wd = new WallDrawing(0, 100); //el muro ese
-//        getContentPane().add(wd); //panel, lienzo donde esta todo(?
-//        repaint();
-        //pintando con matrices para pintar mas en el lienzo
-        /// Los bordes no ma
-
-
-        for (int f = 0; f < m.length; f++) {
-            for (int c = 0; c < m[f].length; c++) {
-                if (esWall(m[f][c])) {
-                    WallDrawing wd = new WallDrawing(c * WallDrawing.WIDTH, f * WallDrawing.WIDTH, m[f][c]);
-                    getContentPane().add(wd);
-                }
-
-                if (m[f][c] == 0) {
-                    DotDrawing dot = new DotDrawing(c * WallDrawing.WIDTH, f * WallDrawing.WIDTH);
-                    getContentPane().add(dot);
-                    puntos.add(dot); // lo guardás en la lista
-                }
-            }
-        }
-
-        pacman = new PacmanDrawing(1 * WallDrawing.WIDTH, 1 * WallDrawing.WIDTH);
-        getContentPane().add(pacman);
-        repaint();
-
-//        GhostDrawing f1 = new GhostDrawing(3 * WallDrawing.WIDTH, 1 * WallDrawing.WIDTH,  2,  0, "Amarillo");
-//        GhostDrawing f2 = new GhostDrawing(8 * WallDrawing.WIDTH, 1 * WallDrawing.WIDTH, -2,  0, "Cyan");
-//        GhostDrawing f3 = new GhostDrawing(3 * WallDrawing.WIDTH, 8 * WallDrawing.WIDTH,  2,  0, "Rojo");
-//        GhostDrawing f4 = new GhostDrawing(8 * WallDrawing.WIDTH, 8 * WallDrawing.WIDTH,  0, -2, "Rosa");
-//
-//        for (GhostDrawing f : List.of(f1, f2, f3, f4)) {
-//            fantasmas.add(f);
-//            getContentPane().add(f);
-//        }
-
-        System.out.println("frame creado");
-        getContentPane().repaint();
+        juego = new Juego(this);
 
         addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_RIGHT: case KeyEvent.VK_D:
-                        dx = 2; dy = 0;
-                        pacman.setDireccion(dx, dy);
+                        juego.getNivelActual().getPacman().setDirAdvance(DireccionEnum.DERECHA);
+                        pacmanDrawing.setDireccion(1, 0);
                         break;
                     case KeyEvent.VK_LEFT: case KeyEvent.VK_A:
-                        dx = -2; dy = 0;
-                        pacman.setDireccion(dx, dy);
+                        juego.getNivelActual().getPacman().setDirAdvance(DireccionEnum.IZQUIERDA);
+                        pacmanDrawing.setDireccion(-1, 0);
                         break;
                     case KeyEvent.VK_UP: case KeyEvent.VK_W:
-                        dx = 0; dy = -2;
-                        pacman.setDireccion(dx, dy);
+                        juego.getNivelActual().getPacman().setDirAdvance(DireccionEnum.ARRIBA);
+                        pacmanDrawing.setDireccion(0, -1);
                         break;
                     case KeyEvent.VK_DOWN: case KeyEvent.VK_S:
-                        dx = 0; dy = 2;
-                        pacman.setDireccion(dx, dy);
+                        juego.getNivelActual().getPacman().setDirAdvance(DireccionEnum.ABAJO);
+                        pacmanDrawing.setDireccion(0, 1);
                         break;
                 }
             }
@@ -145,119 +103,136 @@ public class Frame extends JFrame {
         setFocusable(true);
         requestFocus();
 
-        // en el Timer, reemplazá el movimiento actual por esto:
-        Timer gameLoop = new Timer(16, e -> {
-            int nextX = pacman.getX() + dx;
-            int nextY = pacman.getY() + dy;
-
-            // alineación a grilla al moverse horizontalmente
-            if (dx != 0) {
-                int resto = nextY % WallDrawing.WIDTH;
-                if (resto != 0) {
-                    // snap suave hacia la celda más cercana
-                    nextY = (resto < WallDrawing.WIDTH / 2)
-                            ? nextY - resto
-                            : nextY + (WallDrawing.WIDTH - resto);
-                }
-            }
-
-            // alineación a grilla al moverse verticalmente
-            if (dy != 0) {
-                int resto = nextX % WallDrawing.WIDTH;
-                if (resto != 0) {
-                    nextX = (resto < WallDrawing.WIDTH / 2)
-                            ? nextX - resto
-                            : nextX + (WallDrawing.WIDTH - resto);
-                }
-            }
-
-            int tolerance = 2; // con snap, tolerancia mínima alcanza
-            int maxF = m.length - 1;
-            int maxC = m[0].length - 1;
-
-            int celdaX1 = Math.max(0, Math.min((nextX + tolerance) / WallDrawing.WIDTH, maxC));
-            int celdaX2 = Math.max(0, Math.min((nextX + PacmanDrawing.WIDTH - 1 - tolerance) / WallDrawing.WIDTH, maxC));
-            int celdaY1 = Math.max(0, Math.min((nextY + tolerance) / WallDrawing.WIDTH, maxF));
-            int celdaY2 = Math.max(0, Math.min((nextY + PacmanDrawing.WIDTH - 1 - tolerance) / WallDrawing.WIDTH, maxF));
-
-            boolean choca = esWall(m[celdaY1][celdaX1]) || esWall(m[celdaY2][celdaX2])
-                    || esWall(m[celdaY1][celdaX2]) || esWall(m[celdaY2][celdaX1]);
-
-            if (!choca) {
-                pacman.move(nextX - pacman.getX(), nextY - pacman.getY());
-            }
-
-            int celdaPacX = (pacman.getX() + PacmanDrawing.WIDTH / 2) / WallDrawing.WIDTH;
-            int celdaPacY = (pacman.getY() + PacmanDrawing.WIDTH / 2) / WallDrawing.WIDTH;
-
-            for (int i = 0; i < puntos.size(); i++) {
-                DotDrawing dot = puntos.get(i);
-                int celdaDotX = dot.getX() / WallDrawing.WIDTH;
-                int celdaDotY = dot.getY() / WallDrawing.WIDTH;
-
-                if (celdaPacX == celdaDotX && celdaPacY == celdaDotY) {
-                    m[celdaDotY][celdaDotX] = -1;
-                    getContentPane().remove(dot);
-                    puntos.remove(i);
-                    puntaje++;
-                    break;
-                }
-            }
-//            getContentPane().repaint();
-//            for (GhostDrawing fantasma : fantasmas) {
-//                fantasma.move(m);
-//
-//                boolean tocaPacman = Math.abs(fantasma.getX() - pacman.getX()) < GhostDrawing.WIDTH / 2
-//                        && Math.abs(fantasma.getY() - pacman.getY()) < GhostDrawing.WIDTH / 2;
-//                if (tocaPacman) {
-//                    System.out.println("¡Game over!");
-//                    // después acá va la pantalla de fin
-//                }
-//            }
+        gameLoop = new Timer(16, e -> {
+            juego.avanzarPacman();
+            juego.moverEnemigos();
         });
         gameLoop.start();
+        iniciarTimer();
     }
 
-    private boolean esWall(int celda) {
-        return celda >= 1 && celda <= 7;
+    private void iniciarTimer() {
+        if (timerJuego != null) timerJuego.stop();
+        segundosRestantes = TIEMPO_POR_NIVEL;
+        timerJuego = new Timer(1000, e -> { //ms
+            segundosRestantes--;
+            int min = segundosRestantes / 60;
+            int seg = segundosRestantes % 60;
+            lblTimer.setText(String.format("Tiempo: %d:%02d", min, seg));
+            if (segundosRestantes <= 0) {
+                timerJuego.stop();
+                gameOverConMensaje("La has liado");
+            }
+        });
+        timerJuego.start();
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString("Puntaje: " + puntaje, 20, 20);
+    public void drawBloque(Bloque bloque) {
+        WallDrawing wd = new WallDrawing(bloque.getX(), bloque.getY(), bloque.getTipo());
+        panel.add(wd);
+        panel.repaint();
     }
+
+    @Override
+    public void drawPacman(Pacman pacman) {
+        pacmanDrawing = new PacmanDrawing(pacman);
+        panel.add(pacmanDrawing);
+        panel.repaint();
+    }
+
+    @Override
+    public void updateLocationPacman() {
+        pacmanDrawing.updateLocation();
+    }
+
+    @Override
+    public void removeComida(Comida comida) {
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof DotDrawing dot && dot.getComida() == comida) {
+                panel.remove(dot);
+                panel.repaint();
+                return;
+            }
+            if (comp instanceof FruitDrawing fruit && fruit.getComida() == comida) {
+                panel.remove(fruit);
+                panel.repaint();
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void drawComida(Comida comida) {
+        if (comida.isEsPremioMayor()) {
+            FruitDrawing fruit = new FruitDrawing(
+                    comida.getX(), comida.getY(),
+                    juego.getNivelActual().getNroNivel(),
+                    comida, getClass().getClassLoader()
+            );
+            panel.add(fruit);
+            panel.setComponentZOrder(fruit, 0);
+        } else {
+            DotDrawing dot = new DotDrawing(comida);
+            panel.add(dot);
+            panel.setComponentZOrder(dot, panel.getComponentCount() - 1);
+        }
+        panel.repaint();
+    }
+
+    @Override
+    public void updateScore(int puntaje) {
+        lblScore.setText("Score: " + puntaje);
+    }
+
+    @Override
+    public void clearUI() {
+        panel.removeAll();
+        panel.add(panelHUD);
+        ghostDrawings.clear();
+        panel.repaint();
+        iniciarTimer();
+    }
+
+    @Override
+    public void mostrarVictoria() {
+        gameLoop.stop();
+        if (timerJuego != null) timerJuego.stop();
+        JOptionPane.showMessageDialog(this, "¡Ganaste! Completaste todos los niveles.",
+                "Victoria", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    @Override
+    public void gameOver() {
+        gameOverConMensaje("¡Game Over! Un fantasma te atrapó.");
+    }
+
+    private void gameOverConMensaje(String mensaje) {
+        gameLoop.stop();
+        if (timerJuego != null) timerJuego.stop();
+        JOptionPane.showMessageDialog(this, mensaje, "Game Over", JOptionPane.ERROR_MESSAGE);
+        System.exit(0);
+    }
+
+    @Override
+    public void drawEnemigo(Enemigo enemigo) {
+        GhostDrawing gd = new GhostDrawing(enemigo);
+        ghostDrawings.add(gd);
+        // sin add al panel
+    }
+
+    @Override
+    public void updateEnemigos() {
+        for (GhostDrawing gd : ghostDrawings) {
+            gd.actualizarImagenPublic();
+        }
+        panel.repaint(); // GamePanel.paintComponent pinta los fantasmas
+    }
+
+    // SIN override de paint
 
     public static void main(String[] args) {
-        Frame frame = new Frame();
+        new Frame();
+        System.out.println("Frame creado :D");
     }
-
-//    public int getIndexImageDrawing(String id) {
-//        for (int i = 0; i < getContentPane().getComponents().length; i++) {
-//            if (getContentPane().getComponents()[i] instanceof BigShapeDrawing imgd) {
-//                if (id.equals(imgd.getId())) {
-//                    return i;
-//                }
-//            }
-//        }
-//        return -1;
-//    }
-
-//    @Override
-//    public void delete(String id) {
-//        for (int i = 0; i < getContentPane().getComponents().length; i++) {
-//            if (getContentPane().getComponents()[i] instanceof ShotDrawing sd) {
-//                if (sd.getId().equals(id)) {
-//                    getContentPane().remove(getContentPane().getComponents()[i]);
-//                    System.out.println("eliminado id: " + id);
-//                    getContentPane().revalidate(); // Reorganiza los componentes quitando lo eliminado
-//                    getContentPane().repaint();
-//                    return;
-//                }
-//            }
-//        }
-//    }
-
 }
