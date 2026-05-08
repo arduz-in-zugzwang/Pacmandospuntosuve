@@ -34,4 +34,6 @@ public interface IJuego {
 
     void drawCopito(Copito copito);
     void removeCopito();
+
+    void playEatSound();
 }

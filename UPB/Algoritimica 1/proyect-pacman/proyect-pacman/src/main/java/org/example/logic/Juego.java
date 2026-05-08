@@ -122,8 +122,8 @@ public class Juego {
                 {5,1,1,1,1,1,1,1,1,1,6},
         };
         nivel.setM(m);
-        cargarBloques(nivel, m);
         nivel.setPacman(new Pacman(1 * FIGURA_WIDTH, 1 * FIGURA_WIDTH, FIGURA_WIDTH, 0));
+        cargarBloques(nivel, m);
         nivel.setTotalPuntos(100);
         nivel.getEnemigos().add(new Enemigo(3 * FIGURA_WIDTH, 3 * FIGURA_WIDTH, 1, 0, "Rojo"));
         return nivel;
@@ -135,18 +135,18 @@ public class Juego {
         int[][] m = {
                 {3,1,1,1,1,1,1,1,1,1,1,4},
                 {2,0,0,0,0,0,2,0,0,0,0,2},
-                {2,0,3,1,4,0,2,0,3,1,4,2},
+                {2,0,3,1,4,0,2,0,3,1,0,2},
                 {2,0,0,0,0,0,0,0,0,0,0,2},
                 {2,0,5,1,6,0,7,0,5,1,6,2},
                 {2,0,0,0,0,0,2,0,0,0,0,2},
-                {2,0,3,1,1,0,2,0,1,1,4,2},
+                {2,0,3,1,1,0,0,0,1,1,4,2},
                 {2,0,2,0,0,0,2,0,0,0,2,2},
                 {2,0,5,1,1,1,1,1,1,1,6,2},
                 {5,1,1,1,1,1,1,1,1,1,1,6},
         };
         nivel.setM(m);
-        cargarBloques(nivel, m);
         nivel.setPacman(new Pacman(1 * FIGURA_WIDTH, 1 * FIGURA_WIDTH, FIGURA_WIDTH, 15));
+        cargarBloques(nivel, m);
         nivel.setTotalPuntos(100);
         nivel.getEnemigos().add(new Enemigo(3 * FIGURA_WIDTH, 3 * FIGURA_WIDTH, 1, 0, "Rojo"));
         nivel.getEnemigos().add(new Enemigo(8 * FIGURA_WIDTH, 6 * FIGURA_WIDTH, 0, 1, "Cyan"));
@@ -172,8 +172,8 @@ public class Juego {
                 {5,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6},
         };
         nivel.setM(m);
-        cargarBloques(nivel, m);
         nivel.setPacman(new Pacman(1 * FIGURA_WIDTH, 1 * FIGURA_WIDTH, FIGURA_WIDTH, 15));
+        cargarBloques(nivel, m);
         nivel.setTotalPuntos(100);
         nivel.getEnemigos().add(new Enemigo(3 * FIGURA_WIDTH, 3 * FIGURA_WIDTH, 1, 0, "Rojo"));
         nivel.getEnemigos().add(new Enemigo(8 * FIGURA_WIDTH, 6 * FIGURA_WIDTH, 0, 1, "Cyan"));
@@ -185,6 +185,9 @@ public class Juego {
     // ─── LÓGICA ───────────────────────────────────────────
 
     private void cargarBloques(Nivel nivel, int[][] m) {
+        int pacCeldaX = nivel.getPacman() != null ? nivel.getPacman().getX() / FIGURA_WIDTH : -1;
+        int pacCeldaY = nivel.getPacman() != null ? nivel.getPacman().getY() / FIGURA_WIDTH : -1;
+
         for (int f = 0; f < m.length; f++) {
             int y = f * FIGURA_WIDTH + posInitY;
             for (int c = 0; c < m[f].length; c++) {
@@ -193,6 +196,8 @@ public class Juego {
                     nivel.getBloques().add(new Bloque(x, y, FIGURA_WIDTH, m[f][c], f, c));
                 }
                 if (m[f][c] == 0) {
+                    // no poner flor donde inicia el pacman
+                    if (f == pacCeldaY && c == pacCeldaX) continue;
                     nivel.getComidas().add(new Comida(x, y, FIGURA_WIDTH, false));
                 }
             }
@@ -215,11 +220,15 @@ public class Juego {
                 iJuego.removeComida(comida);
 
                 if (comida.isEsPremioMayor()) {
+                    // fruta = 10 puntos y pasa de nivel
+                    nivelActual.setPuntosAcum(nivelActual.getPuntosAcum() + 10);
+                    iJuego.updateScore(nivelActual.getPuntosAcum());
                     pasarSiguienteNivel();
                 } else {
+                    // flor normal = 1 punto
                     nivelActual.setPuntosAcum(nivelActual.getPuntosAcum() + 1);
                     iJuego.updateScore(nivelActual.getPuntosAcum());
-
+                    iJuego.playEatSound();
                     boolean quedanNormales = nivelActual.getComidas().stream()
                             .anyMatch(c -> !c.isEsPremioMayor());
                     if (!quedanNormales) {

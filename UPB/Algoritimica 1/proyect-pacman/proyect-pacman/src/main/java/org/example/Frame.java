@@ -26,13 +26,14 @@ public class Frame extends JFrame implements IJuego {
     private Timer timerJuego;
     private JLabel lblTimer;
     private int segundosRestantes;
-    private static final int TIEMPO_POR_NIVEL = 180;  //segundos
+    private static final int TIEMPO_POR_NIVEL = 180;
     private GamePanel panel;
     JLabel lblScore;
     private JPanel panelHUD;
+    private CopDrawing copDrawing;
 
     // NUEVO
-    private CopDrawing copDrawing;
+    private JLabel lblGetReady;
 
     private class GamePanel extends JPanel {
         public GamePanel() {
@@ -58,6 +59,7 @@ public class Frame extends JFrame implements IJuego {
         panel = new GamePanel();
         setContentPane(panel);
 
+        // HUD
         panelHUD = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
         panelHUD.setBackground(new Color(69, 169, 101, 120));
         panelHUD.setOpaque(true);
@@ -79,8 +81,18 @@ public class Frame extends JFrame implements IJuego {
         panelHUD.add(lblTimer);
         panel.add(panelHUD);
 
+        // GET READY label — centrado, encima de todo
+        lblGetReady = new JLabel("PREPARAOS CHAVALES D:", SwingConstants.CENTER);
+        lblGetReady.setFont(new Font("Arial", Font.BOLD, 42));
+        lblGetReady.setForeground(new Color(255, 220, 0));
+        lblGetReady.setBounds(0, 280, 1000, 80);
+        lblGetReady.setOpaque(false);
+        panel.add(lblGetReady);
+        panel.setComponentZOrder(lblGetReady, 0);
+
         setVisible(true);
         juego = new Juego(this);
+        SoundManager.initEatPool("eat_dot_1.wav", 6);
 
         addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
@@ -107,18 +119,29 @@ public class Frame extends JFrame implements IJuego {
         setFocusable(true);
         requestFocus();
 
+        // gameLoop creado pero SIN arrancar todavía
         gameLoop = new Timer(16, e -> {
             juego.avanzarPacman();
             juego.moverEnemigos();
         });
-        gameLoop.start();
-        iniciarTimer();
+
+        // suena start.wav, espera ~4s y arranca todo
+        SoundManager.play("start.wav");
+        Timer startDelay = new Timer(4200, e -> {
+            panel.remove(lblGetReady);
+            panel.repaint();
+            gameLoop.start();
+            iniciarTimer();
+//            SoundManager.initEatPool("eat_dot_1.wav", 6); // 6 clips listos // sirena continua
+        });
+        startDelay.setRepeats(false);
+        startDelay.start();
     }
 
     private void iniciarTimer() {
         if (timerJuego != null) timerJuego.stop();
         segundosRestantes = TIEMPO_POR_NIVEL;
-        timerJuego = new Timer(500, e -> {  // 1000 = normal, 500 = 2x rápido, 250 = 4x rápido
+        timerJuego = new Timer(500, e -> {
             segundosRestantes--;
             int min = segundosRestantes / 60;
             int seg = segundosRestantes % 60;
@@ -194,29 +217,39 @@ public class Frame extends JFrame implements IJuego {
         panel.removeAll();
         panel.add(panelHUD);
         ghostDrawings.clear();
-        copDrawing = null;  // NUEVO: limpiar referencia al copito
+        copDrawing = null;
         panel.repaint();
         iniciarTimer();
+        SoundManager.stopLoop();
+//        SoundManager.playLoopConDelay("eat_dot_1.wav",6);
     }
 
     @Override
     public void mostrarVictoria() {
         gameLoop.stop();
         if (timerJuego != null) timerJuego.stop();
-        JOptionPane.showMessageDialog(this, "¡Ganaste! Completaste todos los niveles.",
+        SoundManager.stopLoop();
+        SoundManager.play("extend.wav");
+        JOptionPane.showMessageDialog(this, "He flipao, felicidades Shinji",
                 "Victoria", JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override
     public void gameOver() {
-        gameOverConMensaje("¡Game Over! Un fantasma te atrapó.");
+        gameOverConMensaje("¡Game Over! La has liado");
     }
 
     private void gameOverConMensaje(String mensaje) {
         gameLoop.stop();
         if (timerJuego != null) timerJuego.stop();
-        JOptionPane.showMessageDialog(this, mensaje, "Game Over", JOptionPane.ERROR_MESSAGE);
-        System.exit(0);
+        SoundManager.stopLoop();
+        SoundManager.play("death_0.wav");
+        Timer delay = new Timer(1500, e -> {
+            JOptionPane.showMessageDialog(this, mensaje, "Game Over", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+        });
+        delay.setRepeats(false);
+        delay.start();
     }
 
     @Override
@@ -233,7 +266,6 @@ public class Frame extends JFrame implements IJuego {
         panel.repaint();
     }
 
-    // NUEVO: muestra el copito en pantalla y conecta el click
     @Override
     public void drawCopito(Copito copito) {
         if (copDrawing != null) {
@@ -242,12 +274,11 @@ public class Frame extends JFrame implements IJuego {
         copDrawing = new CopDrawing(copito);
         copDrawing.setOnClick(() -> juego.activarCongelamiento());
         panel.add(copDrawing);
-        panel.setComponentZOrder(copDrawing, 0); // encima de todo
+        panel.setComponentZOrder(copDrawing, 0);
         panel.revalidate();
         panel.repaint();
     }
 
-    // quitar copito de la pantalla
     @Override
     public void removeCopito() {
         if (copDrawing != null) {
@@ -256,6 +287,11 @@ public class Frame extends JFrame implements IJuego {
             panel.revalidate();
             panel.repaint();
         }
+    }
+
+    @Override
+    public void playEatSound() {
+        SoundManager.playEat();
     }
 
     public static void main(String[] args) {
