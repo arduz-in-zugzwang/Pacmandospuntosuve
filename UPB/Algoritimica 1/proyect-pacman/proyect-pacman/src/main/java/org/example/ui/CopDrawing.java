@@ -15,7 +15,7 @@ public class CopDrawing extends JComponent {
 
     public CopDrawing(Copito copito) {
         this.copito = copito;
-        this.imagen = BufferedImageUtil.readImage("copo2.png", getClass());
+        this.imagen = BufferedImageUtil.readImage("copito.png", getClass());
         setBounds(copito.getX(), copito.getY(), SIZE, SIZE);
         setOpaque(false);
 
